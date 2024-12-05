@@ -1,6 +1,13 @@
+private string GetAdminUsername()
+{
+    return Environment.GetEnvironmentVariable("ADMIN_USERNAME");
+}
+
 public void AccessAdminPanel(string username)
 {
-    if (username == "admin") // Hardcoded username for admin
+    string adminUsername = GetAdminUsername();
+
+    if (username == adminUsername)
     {
         Console.WriteLine("Access to Admin Panel Granted!");
     }

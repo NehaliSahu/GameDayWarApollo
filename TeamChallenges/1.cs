@@ -2,29 +2,36 @@ using System;
 using System.Data.SqlClient;
 using System.IO;
 using System.Web.Http;
+using System.Configuration;
 
 namespace VulnerableWebAPI.Controllers
 {
-    [RoutePrefix("api/insecure")]
-    public class InsecureController : ApiController
+    [RoutePrefix("api/secure")]
+    public class SecureController : ApiController
     {
-        // Hardcoded Database Connection String (Vulnerability #3)
-        private readonly string connectionString = "Server=myServer;Database=SensitiveDB;User Id=admin;Password=admin123;";
+        // Secure Database Connection String
+        private readonly string connectionString = ConfigurationManager.ConnectionStrings["SecureDB"].ConnectionString;
 
-        // Insecure endpoint to fetch user data
+        // Secure endpoint to fetch user data
         [HttpGet]
         [Route("getUserData")]
         public IHttpActionResult GetUserData(string userId)
         {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
             try
             {
-                // SQL Injection Vulnerability (#1)
-                string query = $"SELECT * FROM Users WHERE UserId = '{userId}'";
+                // Use parameterized queries to prevent SQL Injection
+                string query = "SELECT * FROM Users WHERE UserId = @UserId";
 
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
                     SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@UserId", userId);
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     if (reader.Read())
@@ -36,28 +43,33 @@ namespace VulnerableWebAPI.Controllers
                             Email = reader["Email"]
                         });
                     }
-                }
 
-                return NotFound();
+                    return NotFound();
+                }
             }
             catch (Exception ex)
             {
-                // Improper Error Handling (#4)
-                return InternalServerError(ex);
+                // Improved Error Handling
+                return InternalServerError(new Exception("An error occurred while fetching user data."));
             }
         }
 
-        // Insecure endpoint to access files
+        // Secure endpoint to access files
         [HttpGet]
         [Route("getFile")]
         public IHttpActionResult GetFile(string fileName)
         {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
             try
             {
-                // Insecure Direct Object Reference (#2)
-                string filePath = "C:\\SecureFiles\\" + fileName;
+                // Validate and sanitize the file name to prevent Insecure Direct Object Reference
+                string filePath = Path.Combine("C:\\SecureFiles\\", Path.GetFileName(fileName));
 
-                // Unrestricted File Access (#5)
+                // Restrict file access to only specific directories
                 if (File.Exists(filePath))
                 {
                     string content = File.ReadAllText(filePath);
@@ -68,21 +80,21 @@ namespace VulnerableWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return InternalServerError(ex);
+                return InternalServerError(new Exception("An error occurred while accessing the file."));
             }
         }
 
-        // Insecure debug endpoint
+        // Secure debug endpoint
         [HttpGet]
         [Route("debug")]
         public IHttpActionResult Debug()
         {
-            // Insecure Configuration (#6)
+            // Secure Configuration
             return Ok(new
             {
-                Environment = "Debug",
+                Environment = "Production",
                 MachineName = Environment.MachineName,
-                Uptime = Environment.TickCount
+                Uptime = TimeSpan.FromMilliseconds(Environment.TickCount).ToString()
             });
         }
     }

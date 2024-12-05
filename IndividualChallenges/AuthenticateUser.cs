@@ -1,8 +1,9 @@
 public void AuthenticateUser(string password)
 {
-    if (password == "admin123") // Hardcoded password
+    var hashedPassword = _configuration["AdminSettings:HashedPassword"];
+    if (VerifyPassword(password, hashedPassword))
     {
-        GrantAccess(); // Insecurely grants access
+        GrantAccess();
     }
     else
     {
@@ -13,4 +14,14 @@ public void AuthenticateUser(string password)
 private void GrantAccess()
 {
     Console.WriteLine("Access Granted!");
+}
+
+
+private bool VerifyPassword(string password, string hashedPassword)
+{
+    using (var sha256 = SHA256.Create())
+    {
+        var hashedInputPassword = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
+        return hashedInputPassword == hashedPassword;
+    }
 }

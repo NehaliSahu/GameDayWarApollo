@@ -1,10 +1,10 @@
 # CheckList
 
 ## Individual Challenges
-- [ ] Access Admin Panel
-- [ ] Add User Input To Cookie
-- [ ] Assign User Input To Inner Html
-- [ ] Authenticate User
+- [x] Access Admin Panel
+- [x] Add User Input To Cookie
+- [x] Assign User Input To Inner Html
+- [x] Authenticate User
 - [ ] Authenticate With Hardcoded Password
 - [ ] Connect With Hardcoded Connection String
 - [ ] Create Auth Cookie
@@ -63,7 +63,7 @@
 - [ ] Write Exception To File
 
 ## Team Challenges
-- [ ] 1
+- [x] 1
 - [ ] 2
 - [ ] 3
 - [ ] 4
